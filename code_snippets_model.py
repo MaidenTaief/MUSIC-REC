@@ -3,7 +3,7 @@ import os
 
 
 # Path to your .ipynb file
-notebook_path = '/Users/taief/Desktop/MUSIC REC/Cluster/data_w_genres.ipynb'
+notebook_path = '/Users/taief/Desktop/MUSIC REC/Cluster/data_by_artist.ipynb'
 
 with open(notebook_path, 'r', encoding='utf-8') as f:
     notebook_content = json.load(f)

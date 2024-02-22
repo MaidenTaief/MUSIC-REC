@@ -1,251 +1,177 @@
 import pandas as pd
 
-#load the data data_w_genres.csv
-data_w_genres = pd.read_csv('/Users/taief/Desktop/MUSIC REC/data/data_w_genres.csv')
-#print data head
-print(data_w_genres.head())
+file_path = '/Users/taief/Desktop/MUSIC REC/data/data_by_artist.csv'
+data_by_artist = pd.read_csv(file_path)
+data_by_artist.head()
 # ----------------------------------------
-# Check for missing values
-print(data_w_genres.isnull().sum())
-
-# Get a summary of the dataset
-print(data_w_genres.describe())
+#check for missing values
+print(data_by_artist.isnull().sum())
+#check for duplicates
+duplicates = data_by_artist.duplicated()
+print(f"Number of duplicate rows: {duplicates.sum()}")
+# check missing rows
+missing_rows = data_by_artist.isnull().sum()
+print(f"Number of missing rows: {missing_rows.sum()}")
 # ----------------------------------------
-import pandas as pd
-
-data_w_genres = pd.read_csv('/Users/taief/Desktop/MUSIC REC/data/data_w_genres.csv')
-
-# Replace empty lists with the string 'Unknown'
-data_w_genres['genres'] = data_w_genres['genres'].apply(lambda x: 'Unknown' if x == '[]' else x)
-
-# Check again for empty lists
-empty_lists = data_w_genres['genres'].apply(lambda x: x == 'Unknown').sum()
-print(f"Number of 'Unknown' genre entries: {empty_lists}")
-
-# check for [] values in genres column
-print(data_w_genres['genres'].head())
-# ----------------------------------------
-from sklearn.preprocessing import StandardScaler
-
-# Fit and transform the data
-scaler = StandardScaler()
-
-# select features to scale
-
-features_to_scale = ['acousticness', 'danceability', 'duration_ms', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence']
-
-# Scale the features
-
-data_w_genres[features_to_scale] = scaler.fit_transform(data_w_genres[features_to_scale])
-
-# print the head of the data
-print(data_w_genres.head())
-
-# ----------------------------------------
-import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from collections import Counter
-import ast  # Abstract Syntax Trees
 
-# Load data
-data_w_genres = pd.read_csv('/Users/taief/Desktop/MUSIC REC/data/data_w_genres.csv')
+# Setting visual style for plots
+sns.set(style="whitegrid")
 
-# Convert the 'genres' column to actual lists
-data_w_genres['genres'] = data_w_genres['genres'].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
+# List of features to plot
+features = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence', 'popularity']
 
-# Flatten the genre lists into one list
-all_genres = [genre for sublist in data_w_genres['genres'] for genre in sublist]
+# Plotting distributions
+fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(20, 25))
+for i, feature in enumerate(features):
+    sns.histplot(data=data_by_artist[feature], ax=axes[i//2, i%2], kde=True)
+    axes[i//2, i%2].set_title(f'Distribution of {feature}')
+plt.tight_layout()
 
-# Count each genre's occurrence
-genre_counts = Counter(all_genres)
-
-# Create a DataFrame for the counts
-genre_df = pd.DataFrame(genre_counts.items(), columns=['Genre', 'Count']).sort_values('Count', ascending=False)
-
-# Plot the top 20 genres by count
-plt.figure(figsize=(12, 8))
-sns.barplot(x='Count', y='Genre', data=genre_df.head(20))
-plt.title('Top 20 Genres by Count')
-plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/top_20_genres.png')
-plt.show()
+# save plot in plot folder with name distribution_of_features.png
+plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/distribution_of_features_artist.png')
 
 # ----------------------------------------
-import seaborn as sns
-
-numerical_features = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence', 'popularity']
-
-# Calculate the correlation matrix
-corr_matrix = data_w_genres[numerical_features].corr()
-
-# Plot the heatmap
-plt.figure(figsize=(10, 8))
-sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm')
-plt.title('Correlation Heatmap')
-plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/correlation_heatmap_w_genres.png')
-plt.show()
-
+# Plotting relation between features and popularity
+fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(20, 25))
+for i, feature in enumerate(features):
+    sns.scatterplot(data=data_by_artist, x=feature, y='popularity', ax=axes[i//2, i%2])
+    axes[i//2, i%2].set_title(f'Relation between {feature} and popularity')
+plt.tight_layout()
+# save plot in plot folder with name relation_between_features_and_popularity.png
+plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/relation_between_features_and_popularity_artist.png')
 # ----------------------------------------
-import seaborn as sns
-
-# Selecting a subset of columns for pair plot visualization
-selected_features = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'valence', 'popularity', 'loudness', 'speechiness']
-
-# Creating pair plot
-sns.pairplot(data_w_genres[selected_features])
-plt.title('Pair Plot of Audio Features')
-plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/pair_plot_w_genres.png')
-plt.show()
-
-# ----------------------------------------
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
+# clustering KMeans
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 
-data_w_genres = pd.read_csv('/Users/taief/Desktop/MUSIC REC/data/data_w_genres.csv')
+# Selecting features for clustering (all available features)
+features_for_clustering = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'tempo', 'valence']
 
-# Feature Engineering based on identified correlations
-data_w_genres['energy_acousticness_interaction'] = data_w_genres['energy'] * data_w_genres['acousticness']
-data_w_genres['dance_valence_synergy'] = data_w_genres['danceability'] + data_w_genres['valence']
-data_w_genres['loud_energy_interaction'] = data_w_genres['loudness'] * data_w_genres['energy']
-data_w_genres['loud_acousticness_interaction'] = data_w_genres['loudness'] * data_w_genres['acousticness']
-data_w_genres['loud_speech_interaction'] = data_w_genres['loudness'] * data_w_genres['speechiness']
-
-# Standardize the data
+# Standardizing the features
+from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
-features_to_scale = ['energy', 'acousticness', 'danceability', 'valence', 'loudness', 'speechiness', 
-                     'energy_acousticness_interaction', 'dance_valence_synergy',
-                     'loud_energy_interaction', 'loud_acousticness_interaction', 
-                     'loud_speech_interaction']
-scaled_features = scaler.fit_transform(data_w_genres[features_to_scale])
+scaled_features = scaler.fit_transform(data_by_artist[features_for_clustering])
 
-# KMeans Clustering with enhanced features
-kmeans = KMeans(n_clusters=5, random_state=42)
+# Applying K-Means Clustering to the dataset
+
+kmeans = KMeans(n_clusters=10, random_state=42)
 clusters = kmeans.fit_predict(scaled_features)
-data_w_genres['enhanced_cluster_label'] = clusters
 
-# Saving the enhanced DataFrame with all new features and clusters
-data_w_genres.to_csv('/Users/taief/Desktop/MUSIC REC/data/enhanced_data_with_clusters_w_genre.csv', index=False)
+# Adding the cluster labels to the original DataFrame
+data_by_artist['cluster_label'] = clusters
 
-print("Fully enhanced dataset with comprehensive feature engineering and clusters created and saved successfully.")
+# Plotting the clusters
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=data_by_artist, x='danceability', y='energy', hue='cluster_label', palette='tab10')
+plt.xlabel('Danceability')
+plt.ylabel('Energy')
+plt.title('Clusters of Artists')
+
+
 
 # ----------------------------------------
 from sklearn.metrics import silhouette_score
 
-# Calculate silhouette scores for different values of k
 silhouette_scores = []
-for k in range(2, 11): 
-    kmeans = KMeans(n_clusters=k, random_state=42)
-    clusters = kmeans.fit_predict(scaled_features)
-    score = silhouette_score(scaled_features, clusters)
-    silhouette_scores.append((k, score))
+for i in range(4, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', max_iter=300, n_init=10, random_state=0)
+    kmeans.fit(scaled_features)
+    silhouette_scores.append(silhouette_score(scaled_features, kmeans.labels_))
 
-# Find the optimal k with the highest silhouette score
-optimal_k = max(silhouette_scores, key=lambda x: x[1])[0]
-print(f"Optimal number of clusters: {optimal_k}")
-#print silhouette scores for different values of k
-print(silhouette_scores)
-# ----------------------------------------
-#import pca library
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-
-# Applying PCA for visualization
-pca = PCA(n_components=2)
-pca_components = pca.fit_transform(scaled_features)
-
-# Plotting the clusters
-plt.figure(figsize=(10, 6))
-plt.scatter(pca_components[:, 0], pca_components[:, 1], c=clusters, cmap='viridis', marker='o')
-plt.title('PCA Cluster Visualization')
-plt.xlabel('PCA 1')
-plt.ylabel('PCA 2')
-plt.colorbar(label='Cluster Label')
+plt.figure(figsize=(10, 5))
+plt.plot(range(4, 11), silhouette_scores)
+plt.title('Silhouette')
+plt.xlabel('Number of clusters')
+plt.ylabel('Silhouette Score')
+plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/silhouette_score.png')
 plt.show()
 
 # ----------------------------------------
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-import seaborn as sns
+kmeans = KMeans(n_clusters=6, random_state=42)
+data_by_artist['cluster'] = kmeans.fit_predict(data_by_artist[features_for_clustering])
 
-# Load your data
-data_w_genres = pd.read_csv('/Users/taief/Desktop/MUSIC REC/data/data_w_genres.csv')
-
-# Preprocessing: Replace empty genre lists with 'Unknown'
-data_w_genres['genres'] = data_w_genres['genres'].apply(lambda x: 'Unknown' if x == '[]' else x)
-
-# Select features for clustering
-features = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'valence', 'speechiness']
-X = data_w_genres[features]
-
-# Standardize features
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-
-# Apply K-Means Clustering
-kmeans = KMeans(n_clusters=5, random_state=42)
-data_w_genres['cluster'] = kmeans.fit_predict(X_scaled)
-
-# Calculate and interpret centroids
+# Check the size of each cluster
+print(data_by_artist['cluster'].value_counts())
+# ----------------------------------------
+# get the centroids of the clusters
 centroids = kmeans.cluster_centers_
-centroids_df = pd.DataFrame(scaler.inverse_transform(centroids), columns=features)
+
+# create a DataFrame with the centroids
+centroids_df = pd.DataFrame(centroids, columns=features_for_clustering)
+
 print(centroids_df)
+# ----------------------------------------
+from sklearn.decomposition import PCA
 
-# Define a labeling function based on centroids
-def label_genre_clusters(row):
-    labels = []
-    if row['acousticness'] > 0.5:
-        labels.append('High Acousticness')
-    if row['energy'] > 0.5:
-        labels.append('High Energy')
-    if row['danceability'] > 0.5:
-        labels.append('High Danceability')
-    if row['valence'] > 0.5:
-        labels.append('High Valence')
-    if row['speechiness'] > 0.5:
-        labels.append('High Speechiness')
-    
-    # Combine labels if multiple conditions are met, or label as 'Mixed' if none
-    return ', '.join(labels) if labels else 'Mixed'
-
-centroids_df['label'] = centroids_df.apply(label_genre_clusters, axis=1)
-
-# Map the labels from centroids to each genre in the original DataFrame
-cluster_labels = centroids_df['label'].to_dict()
-data_w_genres['cluster_label'] = data_w_genres['cluster'].map(cluster_labels)
-
-# Visualize with PCA
+# Apply PCA to reduce the dimensions to 2
 pca = PCA(n_components=2)
-pca_result = pca.fit_transform(X_scaled)
-data_w_genres['pca_one'] = pca_result[:,0]
-data_w_genres['pca_two'] = pca_result[:,1]
+pca_result = pca.fit_transform(data_by_artist[features_for_clustering])
 
-plt.figure(figsize=(10,8))
-sns.scatterplot(
-    x="pca_one", y="pca_two",
-    hue="cluster",
-    palette=sns.color_palette("hsv", 5),
-    data=data_w_genres,
-    legend="full",
-    alpha=0.8
-)
+# Add the PCA results to the DataFrame
+data_by_artist['pca_one'] = pca_result[:, 0]
+data_by_artist['pca_two'] = pca_result[:, 1]
 
-# Plot centroids
-centroids_pca = pca.transform(centroids)
-plt.scatter(centroids_pca[:,0], centroids_pca[:,1], c='red', s=50, marker='X')
-
-# Save the enhanced dataset
-data_w_genres.to_csv('/Users/taief/Desktop/MUSIC REC/data/enhanced_data_with_clusters_genre.csv', index=False)
-
-plt.title('PCA Plot of Genres Clustered')
-plt.xlabel('PCA Component 1')
-plt.ylabel('PCA Component 2')
-plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/pca_genres_clusters_visualization.png', dpi=300)
+# Visualize the PCA result
+plt.figure(figsize=(10, 8))
+sns.scatterplot(x='pca_one', y='pca_two', hue='cluster', data=data_by_artist, palette='viridis')
+plt.title('PCA - 2D Projection of artists')
+plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/PCA_of_artists.png')
 plt.show()
+
+# ----------------------------------------
+def assign_cluster_name(centroid):
+    # Define thresholds for categorizing features
+    thresholds = {
+        'high_instrumentalness': 0.7,
+        'high_speechiness': 0.7,
+        'medium_danceability': 0.5,
+        'medium_energy': 0.5,
+        'medium_valence': 0.5,
+        'medium_acousticness': 0.5
+    }
+
+    # First check for highly instrumental or speechy music
+    if centroid['instrumentalness'] > thresholds['high_instrumentalness']:
+        return 'Highly Instrumental'
+    if centroid['speechiness'] > thresholds['high_speechiness']:
+        return 'Wordy'
+
+    # Second, check for Acoustic and energetic music, and positive vibes
+    labels = []
+    if centroid['danceability'] > thresholds['medium_danceability'] and centroid['energy'] > thresholds['medium_energy']:
+        labels.append('Energetic Dance')
+    if centroid['valence'] > thresholds['medium_valence']:
+        labels.append('Positive Vibes')
+    if centroid['acousticness'] > thresholds['medium_acousticness']:
+        labels.append('Acoustic')
+
+    # Finally, check for vocally rich music
+    if not labels:
+        if centroid['instrumentalness'] < 0.3:
+            return 'Vocally Rich'
+        return 'Varied'  # Use 'Varied' for centroids that don't fit other categories
+
+    # Return the combined labels, or 'Varied' if no specific characteristics stand out
+    return ', '.join(labels)  # Using comma as separator for readability
+
+# Example usage:
+cluster_name = assign_cluster_name(centroid_example)
+print(cluster_name)
+
+# ----------------------------------------
+# Apply the mapping to your DataFrame
+data_by_artist['cluster_name'] = data_by_artist.apply(lambda row: assign_cluster_name(row[features_for_clustering]), axis=1)
+
+# show head
+#print(data_by_artist[['artists', 'cluster', 'cluster_name']].head(20))
+
+#print one artist cluster name
+print(data_by_artist[data_by_artist['artists'] == 'Linkin Park']['cluster_name'])
+
+# Save the enhanced data with cluster labels
+data_by_artist.to_csv('/Users/taief/Desktop/MUSIC REC/data/data_by_artist_with_clusters.csv', index=False)
 
 # ----------------------------------------
 
