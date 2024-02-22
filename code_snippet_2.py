@@ -31,7 +31,6 @@ plt.tight_layout()
 
 # save plot in plot folder with name distribution_of_features.png
 plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/distribution_of_features_artist.png')
-
 # ----------------------------------------
 # Plotting relation between features and popularity
 fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(20, 25))
@@ -39,7 +38,7 @@ for i, feature in enumerate(features):
     sns.scatterplot(data=data_by_artist, x=feature, y='popularity', ax=axes[i//2, i%2])
     axes[i//2, i%2].set_title(f'Relation between {feature} and popularity')
 plt.tight_layout()
-# save plot in plot folder with name relation_between_features_and_popularity.png
+
 plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/relation_between_features_and_popularity_artist.png')
 # ----------------------------------------
 # clustering KMeans
@@ -68,9 +67,6 @@ sns.scatterplot(data=data_by_artist, x='danceability', y='energy', hue='cluster_
 plt.xlabel('Danceability')
 plt.ylabel('Energy')
 plt.title('Clusters of Artists')
-
-
-
 # ----------------------------------------
 from sklearn.metrics import silhouette_score
 
@@ -87,7 +83,6 @@ plt.xlabel('Number of clusters')
 plt.ylabel('Silhouette Score')
 plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/silhouette_score.png')
 plt.show()
-
 # ----------------------------------------
 kmeans = KMeans(n_clusters=6, random_state=42)
 data_by_artist['cluster'] = kmeans.fit_predict(data_by_artist[features_for_clustering])
@@ -119,7 +114,6 @@ sns.scatterplot(x='pca_one', y='pca_two', hue='cluster', data=data_by_artist, pa
 plt.title('PCA - 2D Projection of artists')
 plt.savefig('/Users/taief/Desktop/MUSIC REC/plot/PCA_of_artists.png')
 plt.show()
-
 # ----------------------------------------
 def assign_cluster_name(centroid):
     # Define thresholds for categorizing features
@@ -156,23 +150,33 @@ def assign_cluster_name(centroid):
     # Return the combined labels, or 'Varied' if no specific characteristics stand out
     return ', '.join(labels)  # Using comma as separator for readability
 
+
 # Example usage:
+centroid_example = {
+    'acousticness': 0.4,
+    'danceability': 0.7,
+    'energy': 0.6,
+    'instrumentalness': 0.2,
+    'liveness': 0.2,
+    'speechiness': 0.4,
+    'tempo': 120,
+    'valence': 0.8
+}
+
 cluster_name = assign_cluster_name(centroid_example)
 print(cluster_name)
-
 # ----------------------------------------
 # Apply the mapping to your DataFrame
 data_by_artist['cluster_name'] = data_by_artist.apply(lambda row: assign_cluster_name(row[features_for_clustering]), axis=1)
 
-# show head
-#print(data_by_artist[['artists', 'cluster', 'cluster_name']].head(20))
+# show random 10 rows
+print(data_by_artist[['artists', 'cluster', 'cluster_name']].sample(10))
 
 #print one artist cluster name
 print(data_by_artist[data_by_artist['artists'] == 'Linkin Park']['cluster_name'])
-
+# ----------------------------------------
 # Save the enhanced data with cluster labels
 data_by_artist.to_csv('/Users/taief/Desktop/MUSIC REC/data/data_by_artist_with_clusters.csv', index=False)
-
 # ----------------------------------------
 
 # ----------------------------------------
